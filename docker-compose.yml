@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: oddsiq-postgres
+    environment:
+      POSTGRES_DB: oddsiq
+      POSTGRES_USER: oddsiq_user
+      POSTGRES_PASSWORD: oddsiq_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oddsiq_user -d oddsiq"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oddsiq-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: oddsiq-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgres://oddsiq_user:oddsiq_password@postgres:5432/oddsiq?sslmode=disable
+      ML_SERVICE_URL: http://ml-service:8001
+      PORT: 8000
+      ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - oddsiq-network
+    restart: unless-stopped
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: oddsiq-ml-service
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://oddsiq_user:oddsiq_password@postgres:5432/oddsiq
+      MODEL_PATH: /app/models
+    volumes:
+      - ./ml-service/models:/app/models
+      - ./ml-service/notebooks:/app/notebooks
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - oddsiq-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: oddsiq-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    depends_on:
+      - backend
+    networks:
+      - oddsiq-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  oddsiq-network:
+    driver: bridge

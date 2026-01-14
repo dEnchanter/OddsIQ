@@ -1,0 +1,24 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.25
+
+# ML Libraries
+numpy==1.26.3
+pandas==2.1.4
+scikit-learn==1.4.0
+xgboost==2.0.3
+scipy==1.11.4
+
+# Model evaluation
+matplotlib==3.8.2
+seaborn==0.13.1
+
+# Utilities
+python-dotenv==1.0.0
+httpx==0.26.0
+python-dateutil==2.8.2
