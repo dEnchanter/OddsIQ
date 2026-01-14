@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
@@ -45,7 +44,7 @@ func main() {
 	}
 
 	// Initialize database
-	db, err := database.Connect(cfg.DatabaseURL)
+	db, err := database.New(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -57,8 +56,8 @@ func main() {
 	apiFootballClient := apifootball.NewClient(cfg.APIFootballKey)
 
 	// Initialize repositories
-	teamsRepo := repository.NewTeamsRepository(db)
-	fixturesRepo := repository.NewFixturesRepository(db)
+	teamsRepo := repository.NewTeamsRepository(db.Pool)
+	fixturesRepo := repository.NewFixturesRepository(db.Pool)
 
 	// Initialize sync service
 	fixtureSyncService := services.NewFixtureSyncService(

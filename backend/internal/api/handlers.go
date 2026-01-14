@@ -64,7 +64,6 @@ func (api *API) getFixtures() gin.HandlerFunc {
 		status := c.Query("status")
 
 		var fixtures []interface{}
-		var err error
 
 		if seasonStr != "" {
 			season, parseErr := strconv.Atoi(seasonStr)
@@ -169,7 +168,7 @@ func (api *API) getFixtureOdds() gin.HandlerFunc {
 }
 
 // getWeeklyPicks returns weekly picks handler
-func getWeeklyPicks(db *database.DB, cfg *config.Config) gin.HandlerFunc {
+func (api *API) getWeeklyPicks() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement weekly picks
 		c.JSON(http.StatusOK, gin.H{
@@ -182,7 +181,7 @@ func getWeeklyPicks(db *database.DB, cfg *config.Config) gin.HandlerFunc {
 }
 
 // getBets returns bets list handler
-func getBets(db *database.DB) gin.HandlerFunc {
+func (api *API) getBets() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement get bets
 		c.JSON(http.StatusOK, gin.H{
@@ -193,7 +192,7 @@ func getBets(db *database.DB) gin.HandlerFunc {
 }
 
 // createBet returns create bet handler
-func createBet(db *database.DB) gin.HandlerFunc {
+func (api *API) createBet() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement create bet
 		c.JSON(http.StatusCreated, gin.H{
@@ -204,7 +203,7 @@ func createBet(db *database.DB) gin.HandlerFunc {
 }
 
 // settleBet returns settle bet handler
-func settleBet(db *database.DB) gin.HandlerFunc {
+func (api *API) settleBet() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement settle bet
 		betID := c.Param("id")
@@ -216,7 +215,7 @@ func settleBet(db *database.DB) gin.HandlerFunc {
 }
 
 // getPerformanceSummary returns performance summary handler
-func getPerformanceSummary(db *database.DB) gin.HandlerFunc {
+func (api *API) getPerformanceSummary() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement performance summary
 		c.JSON(http.StatusOK, gin.H{
@@ -229,7 +228,7 @@ func getPerformanceSummary(db *database.DB) gin.HandlerFunc {
 }
 
 // getDailyPerformance returns daily performance handler
-func getDailyPerformance(db *database.DB) gin.HandlerFunc {
+func (api *API) getDailyPerformance() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement daily performance
 		c.JSON(http.StatusOK, gin.H{
@@ -239,7 +238,7 @@ func getDailyPerformance(db *database.DB) gin.HandlerFunc {
 }
 
 // getBankrollHistory returns bankroll history handler
-func getBankrollHistory(db *database.DB) gin.HandlerFunc {
+func (api *API) getBankrollHistory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement bankroll history
 		c.JSON(http.StatusOK, gin.H{
