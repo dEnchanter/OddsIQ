@@ -4,6 +4,7 @@ Thumbs.db
 
 # IDEs
 .vscode/
+.claude
 .idea/
 *.swp
 *.swo
