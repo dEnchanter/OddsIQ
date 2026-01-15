@@ -25,7 +25,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Next:** Phase 3 - Feature Engineering & ML Model (Weeks 3-5)
 
-**See:** `docs/PHASE-2-COMPLETE.md` for detailed Phase 2 summary
+**See:**
+- `docs/PHASE-2-COMPLETE.md` - Detailed Phase 2 summary
+- `docs/SESSION-SUMMARY.md` - Latest session accomplishments
+- `docs/GO-LEARNING-GUIDE.md` - **START HERE** if learning Go
 
 ## Architecture
 

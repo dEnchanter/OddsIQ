@@ -17,7 +17,7 @@ import (
 
 func main() {
 	// Command-line flags
-	seasonsFlag := flag.String("seasons", "2022,2023,2024", "Comma-separated list of seasons to backfill")
+	seasonsFlag := flag.String("seasons", "2022,2023,2024,2025", "Comma-separated list of seasons to backfill")
 	teamsOnly := flag.Bool("teams-only", false, "Only sync teams, skip fixtures")
 	fixturesOnly := flag.Bool("fixtures-only", false, "Only sync fixtures, skip teams")
 	help := flag.Bool("help", false, "Show help")
@@ -130,7 +130,7 @@ func printSummary(ctx context.Context, teamsRepo *repository.TeamsRepository, fi
 	}
 
 	// Count fixtures by season
-	seasons := []int{2022, 2023, 2024}
+	seasons := []int{2022, 2023, 2024, 2025}
 	for _, season := range seasons {
 		fixtures, err := fixturesRepo.GetBySeason(ctx, season)
 		if err != nil {
@@ -151,7 +151,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("Flags:")
 	fmt.Println("  -seasons string")
-	fmt.Println("        Comma-separated list of seasons to backfill (default \"2022,2023,2024\")")
+	fmt.Println("        Comma-separated list of seasons to backfill (default \"2022,2023,2024,2025\")")
 	fmt.Println("  -teams-only")
 	fmt.Println("        Only sync teams, skip fixtures")
 	fmt.Println("  -fixtures-only")
@@ -160,7 +160,7 @@ func printHelp() {
 	fmt.Println("        Show this help message")
 	fmt.Println()
 	fmt.Println("Examples:")
-	fmt.Println("  # Backfill all data for 2022-2024")
+	fmt.Println("  # Backfill all data for 2022-2025")
 	fmt.Println("  go run cmd/backfill/main.go")
 	fmt.Println()
 	fmt.Println("  # Backfill only 2024 season")

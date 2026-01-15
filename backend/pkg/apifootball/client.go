@@ -73,12 +73,12 @@ func (c *Client) doRequest(endpoint string, params map[string]string) ([]byte, e
 
 // APIResponse is the generic response wrapper
 type APIResponse struct {
-	Get        string                   `json:"get"`
-	Parameters map[string]interface{}   `json:"parameters"`
-	Errors     map[string]interface{}   `json:"errors"`
-	Results    int                      `json:"results"`
-	Paging     map[string]interface{}   `json:"paging"`
-	Response   json.RawMessage          `json:"response"`
+	Get        string                 `json:"get"`
+	Parameters map[string]interface{} `json:"parameters"`
+	Errors     interface{}            `json:"errors"` // Can be map or array
+	Results    int                    `json:"results"`
+	Paging     map[string]interface{} `json:"paging"`
+	Response   json.RawMessage        `json:"response"`
 }
 
 // Team represents a team

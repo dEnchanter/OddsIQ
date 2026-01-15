@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS fixtures (
     home_score INTEGER,
     away_score INTEGER,
     status VARCHAR(20) DEFAULT 'scheduled',
-    venue VARCHAR(100),
+    venue_name VARCHAR(100),
     referee VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -47,14 +47,14 @@ CREATE TABLE IF NOT EXISTS odds (
     market_type VARCHAR(50) NOT NULL,
     outcome VARCHAR(20),
     odds_value DECIMAL(10, 2) NOT NULL,
-    recorded_at TIMESTAMP NOT NULL,
+    timestamp TIMESTAMP NOT NULL,
     is_closing_line BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_odds_fixture ON odds(fixture_id);
 CREATE INDEX idx_odds_bookmaker ON odds(bookmaker);
-CREATE INDEX idx_odds_recorded_at ON odds(recorded_at);
+CREATE INDEX idx_odds_timestamp ON odds(timestamp);
 CREATE INDEX idx_odds_closing_line ON odds(is_closing_line) WHERE is_closing_line = TRUE;
 
 -- Create team_stats table
@@ -62,31 +62,31 @@ CREATE TABLE IF NOT EXISTS team_stats (
     id SERIAL PRIMARY KEY,
     team_id INTEGER REFERENCES teams(id),
     season INTEGER NOT NULL,
-    match_date DATE NOT NULL,
-    games_played INTEGER DEFAULT 0,
+    matches_played INTEGER DEFAULT 0,
     wins INTEGER DEFAULT 0,
     draws INTEGER DEFAULT 0,
     losses INTEGER DEFAULT 0,
     goals_for INTEGER DEFAULT 0,
     goals_against INTEGER DEFAULT 0,
+    goal_difference INTEGER DEFAULT 0,
     points INTEGER DEFAULT 0,
-    position INTEGER,
-    form_last_5 VARCHAR(5),
     home_wins INTEGER DEFAULT 0,
     home_draws INTEGER DEFAULT 0,
     home_losses INTEGER DEFAULT 0,
     away_wins INTEGER DEFAULT 0,
     away_draws INTEGER DEFAULT 0,
     away_losses INTEGER DEFAULT 0,
-    xg_for DECIMAL(5, 2),
-    xg_against DECIMAL(5, 2),
+    form VARCHAR(10),
+    clean_sheets INTEGER DEFAULT 0,
+    failed_to_score INTEGER DEFAULT 0,
+    avg_goals_scored DECIMAL(5, 2) DEFAULT 0,
+    avg_goals_conceded DECIMAL(5, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(team_id, season, match_date)
+    UNIQUE(team_id, season)
 );
 
 CREATE INDEX idx_team_stats_team_season ON team_stats(team_id, season);
-CREATE INDEX idx_team_stats_match_date ON team_stats(match_date);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
