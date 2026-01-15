@@ -33,7 +33,7 @@ def calculate_h2h_stats(
         if ((f['home_team_id'] == home_team_id and f['away_team_id'] == away_team_id) or
             (f['home_team_id'] == away_team_id and f['away_team_id'] == home_team_id))
         and f['match_date'] < current_date
-        and f['status'] == 'Match Finished'
+        and f['status'] == 'FT'
         and f['home_score'] is not None
     ]
 

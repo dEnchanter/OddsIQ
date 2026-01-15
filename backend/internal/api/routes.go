@@ -30,6 +30,19 @@ func SetupRoutes(router *gin.Engine, db *pgxpool.Pool, cfg *config.Config) {
 			picks.GET("/weekly", api.getWeeklyPicks())
 		}
 
+		// Predictions endpoints
+		predictions := v1.Group("/predictions")
+		{
+			predictions.GET("/fixture/:id", api.getPrediction())
+		}
+
+		// Model endpoints
+		model := v1.Group("/model")
+		{
+			model.GET("/metrics", api.getModelMetrics())
+			model.GET("/health", api.getMLHealth())
+		}
+
 		// Bets endpoints
 		bets := v1.Group("/bets")
 		{

@@ -29,7 +29,7 @@ def calculate_league_table(
         f for f in all_fixtures
         if f['season'] == season
         and f['match_date'] < up_to_date
-        and f['status'] == 'Match Finished'
+        and f['status'] == 'FT'
         and f['home_score'] is not None
     ]
 

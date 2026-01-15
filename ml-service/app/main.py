@@ -10,9 +10,9 @@ from config.config import config
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
-    print(f"🚀 ML Service starting on port {config.PORT}")
-    print(f"📊 Model version: {config.MODEL_VERSION}")
-    print(f"💾 Model path: {config.MODEL_PATH}")
+    print(f"[OK] ML Service starting on port {config.PORT}")
+    print(f"[OK] Model version: {config.MODEL_VERSION}")
+    print(f"[OK] Model path: {config.MODEL_PATH}")
 
     yield
 

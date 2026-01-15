@@ -30,7 +30,7 @@ def calculate_team_form_last_n(
         f for f in all_fixtures
         if (f['home_team_id'] == team_id or f['away_team_id'] == team_id)
         and f['match_date'] < current_date
-        and f['status'] == 'Match Finished'
+        and f['status'] == 'FT'
         and f['home_score'] is not None
     ]
 
@@ -132,7 +132,7 @@ def calculate_home_away_form(
             f for f in all_fixtures
             if f['home_team_id'] == team_id
             and f['match_date'] < current_date
-            and f['status'] == 'Match Finished'
+            and f['status'] == 'FT'
             and f['home_score'] is not None
         ]
     else:
@@ -140,7 +140,7 @@ def calculate_home_away_form(
             f for f in all_fixtures
             if f['away_team_id'] == team_id
             and f['match_date'] < current_date
-            and f['status'] == 'Match Finished'
+            and f['status'] == 'FT'
             and f['away_score'] is not None
         ]
 

@@ -8,27 +8,33 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/dEnchanter/OddsIQ/backend/config"
 	"github.com/dEnchanter/OddsIQ/backend/internal/repository"
+	"github.com/dEnchanter/OddsIQ/backend/internal/services"
 )
 
 // API holds all the dependencies for handlers
 type API struct {
-	db           *pgxpool.Pool
-	cfg          *config.Config
-	teamsRepo    *repository.TeamsRepository
-	fixturesRepo *repository.FixturesRepository
-	oddsRepo     *repository.OddsRepository
-	statsRepo    *repository.TeamStatsRepository
+	db                *pgxpool.Pool
+	cfg               *config.Config
+	teamsRepo         *repository.TeamsRepository
+	fixturesRepo      *repository.FixturesRepository
+	oddsRepo          *repository.OddsRepository
+	statsRepo         *repository.TeamStatsRepository
+	predictionService *services.PredictionService
 }
 
 // NewAPI creates a new API instance
 func NewAPI(db *pgxpool.Pool, cfg *config.Config) *API {
+	fixturesRepo := repository.NewFixturesRepository(db)
+	oddsRepo := repository.NewOddsRepository(db)
+
 	return &API{
-		db:           db,
-		cfg:          cfg,
-		teamsRepo:    repository.NewTeamsRepository(db),
-		fixturesRepo: repository.NewFixturesRepository(db),
-		oddsRepo:     repository.NewOddsRepository(db),
-		statsRepo:    repository.NewTeamStatsRepository(db),
+		db:                db,
+		cfg:               cfg,
+		teamsRepo:         repository.NewTeamsRepository(db),
+		fixturesRepo:      fixturesRepo,
+		oddsRepo:          oddsRepo,
+		statsRepo:         repository.NewTeamStatsRepository(db),
+		predictionService: services.NewPredictionService(cfg, fixturesRepo, oddsRepo),
 	}
 }
 
@@ -170,12 +176,115 @@ func (api *API) getFixtureOdds() gin.HandlerFunc {
 // getWeeklyPicks returns weekly picks handler
 func (api *API) getWeeklyPicks() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement weekly picks
+		ctx := c.Request.Context()
+
+		// Get bankroll from query or use default
+		bankroll := api.cfg.InitialBankroll
+		if bankrollStr := c.Query("bankroll"); bankrollStr != "" {
+			if b, err := strconv.ParseFloat(bankrollStr, 64); err == nil {
+				bankroll = b
+			}
+		}
+
+		picks, err := api.predictionService.GetWeeklyPicks(ctx, bankroll)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Calculate summary
+		var totalEV float64
+		var totalStake float64
+		for _, p := range picks {
+			totalEV += p.ExpectedValue
+			totalStake += p.SuggestedStake
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"picks": []interface{}{},
+			"picks": picks,
 			"summary": gin.H{
-				"total_picks": 0,
+				"total_picks":        len(picks),
+				"total_suggested_stake": totalStake,
+				"total_expected_value":  totalEV,
+				"bankroll":           bankroll,
 			},
+		})
+	}
+}
+
+// getPrediction returns prediction for a single fixture
+func (api *API) getPrediction() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
+		fixtureID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid fixture ID"})
+			return
+		}
+
+		fixture, err := api.fixturesRepo.GetByID(ctx, fixtureID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "fixture not found"})
+			return
+		}
+
+		prediction, err := api.predictionService.GetPrediction(ctx, fixture)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"fixture":    fixture,
+			"prediction": prediction,
+		})
+	}
+}
+
+// getModelMetrics returns ML model performance metrics
+func (api *API) getModelMetrics() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
+		metrics, err := api.predictionService.GetModelMetrics(ctx)
+		if err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"error":   "ML service unavailable",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"model": metrics,
+		})
+	}
+}
+
+// getMLHealth returns ML service health status
+func (api *API) getMLHealth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
+		healthy, err := api.predictionService.CheckMLServiceHealth(ctx)
+		if err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"status":  "unhealthy",
+				"service": "ml-service",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		status := "unhealthy"
+		if healthy {
+			status = "healthy"
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  status,
+			"service": "ml-service",
 		})
 	}
 }
