@@ -1,0 +1,12 @@
+{
+  "market": "btts",
+  "accuracy": 0.5263157894736842,
+  "baseline_accuracy": 0.5350877192982456,
+  "improvement": -0.00877192982456143,
+  "train_samples": 912,
+  "test_samples": 228,
+  "precision": 0.5443037974683544,
+  "recall": 0.7049180327868853,
+  "f1_score": 0.6142857142857143,
+  "roc_auc": 0.46752242499226715
+}

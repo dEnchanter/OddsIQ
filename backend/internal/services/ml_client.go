@@ -60,13 +60,13 @@ type BatchPredictionResponse struct {
 
 // ModelMetricsResponse represents model performance metrics
 type ModelMetricsResponse struct {
-	ModelVersion     string   `json:"model_version"`
-	TrainingDate     string   `json:"training_date"`
-	Accuracy         float64  `json:"accuracy"`
-	BaselineAccuracy float64  `json:"baseline_accuracy"`
-	Improvement      float64  `json:"improvement"`
-	ConfigName       *string  `json:"config_name"`
-	FeatureCount     int      `json:"feature_count"`
+	ModelVersion     string  `json:"model_version"`
+	TrainingDate     string  `json:"training_date"`
+	Accuracy         float64 `json:"accuracy"`
+	BaselineAccuracy float64 `json:"baseline_accuracy"`
+	Improvement      float64 `json:"improvement"`
+	ConfigName       *string `json:"config_name"`
+	FeatureCount     int     `json:"feature_count"`
 }
 
 // HealthResponse represents health check response
@@ -75,6 +75,32 @@ type HealthResponse struct {
 	Service      string `json:"service"`
 	Version      string `json:"version"`
 	ModelVersion string `json:"model_version"`
+}
+
+// MarketPrediction represents prediction for a single market
+type MarketPrediction struct {
+	Market           string             `json:"market"`
+	Description      string             `json:"description"`
+	Probabilities    map[string]float64 `json:"probabilities"`
+	PredictedOutcome string             `json:"predicted_outcome"`
+	Confidence       float64            `json:"confidence"`
+}
+
+// MultiMarketPredictionResponse represents multi-market prediction response
+type MultiMarketPredictionResponse struct {
+	FixtureID    *int                        `json:"fixture_id"`
+	HomeTeamID   int                         `json:"home_team_id"`
+	AwayTeamID   int                         `json:"away_team_id"`
+	MatchDate    string                      `json:"match_date"`
+	Predictions  map[string]MarketPrediction `json:"predictions"`
+	FeaturesUsed int                         `json:"features_used"`
+	PredictedAt  string                      `json:"predicted_at"`
+}
+
+// AllMarketsMetricsResponse represents metrics for all markets
+type AllMarketsMetricsResponse struct {
+	Markets          map[string]ModelMetricsResponse `json:"markets"`
+	AvailableMarkets []string                        `json:"available_markets"`
 }
 
 // NewMLClient creates a new ML service client
@@ -273,4 +299,67 @@ func (c *MLClient) ReloadModel(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// PredictMultiMarket gets predictions for all markets (1X2, O/U, BTTS)
+func (c *MLClient) PredictMultiMarket(ctx context.Context, fixture *models.Fixture) (*MultiMarketPredictionResponse, error) {
+	reqBody := PredictionRequest{
+		HomeTeamID: fixture.HomeTeamID,
+		AwayTeamID: fixture.AwayTeamID,
+		MatchDate:  fixture.MatchDate.Format("2006-01-02"),
+		FixtureID:  &fixture.ID,
+	}
+
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/api/predict/multi", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call ML service: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("ML service error: status %d", resp.StatusCode)
+	}
+
+	var multiResp MultiMarketPredictionResponse
+	if err := json.NewDecoder(resp.Body).Decode(&multiResp); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &multiResp, nil
+}
+
+// GetAllMarketsMetrics retrieves metrics for all market models
+func (c *MLClient) GetAllMarketsMetrics(ctx context.Context) (*AllMarketsMetricsResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+"/api/model/metrics/all", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call ML service: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("ML service error: status %d", resp.StatusCode)
+	}
+
+	var metrics AllMarketsMetricsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&metrics); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &metrics, nil
 }

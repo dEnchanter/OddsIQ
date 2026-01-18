@@ -266,3 +266,8 @@ func (s *PredictionService) ClearCache() {
 	s.cache = make(map[int]*models.Prediction)
 	s.cacheTime = make(map[int]time.Time)
 }
+
+// GetAllMarketsMetrics returns metrics for all market models
+func (s *PredictionService) GetAllMarketsMetrics(ctx context.Context) (*AllMarketsMetricsResponse, error) {
+	return s.mlClient.GetAllMarketsMetrics(ctx)
+}
